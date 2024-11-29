@@ -1,14 +1,5 @@
-variable "key_name" {
-  description = "Name of the SSH key pair"
+variable "ip_adresa" {
+  description = "IP adresa masine koja jedinia ima prisptup 22"
   type        = string
-}
-
-variable "public_subnet_id" {
-  description = "ID of the public subnet"
-  type        = string
-}
-
-variable "private_subnet_id" {
-  description = "ID of the private subnet"
-  type        = string
+  default     = "212.200.247.75/32"
 }
