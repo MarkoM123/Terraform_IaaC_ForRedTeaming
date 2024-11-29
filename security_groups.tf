@@ -1,4 +1,3 @@
-# C2 Server Security Group
 resource "aws_security_group" "c2_sg" {
   vpc_id = aws_vpc.main.id
 
@@ -15,7 +14,7 @@ resource "aws_security_group" "c2_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["212.200.247.75/32"]
+    cidr_blocks = [var.ip_adresa]
   }
 
   egress {
@@ -51,10 +50,10 @@ resource "aws_security_group" "main_sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    description = "Allow SSH from Redirectors"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
+    description     = "Allow SSH from Redirectors"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
     security_groups = [aws_security_group.redirector_sg.id]
   }
 
