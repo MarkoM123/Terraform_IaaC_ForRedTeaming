@@ -1,5 +1,6 @@
 resource "aws_security_group" "c2_sg" {
   vpc_id = aws_vpc.main.id
+  name   = "c2_sg"
 
   ingress {
     description = "Allow HTTP"
@@ -8,7 +9,7 @@ resource "aws_security_group" "c2_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-   ingress {
+  ingress {
     description = "Allow HTTP"
     from_port   = 443
     to_port     = 443
@@ -36,6 +37,7 @@ resource "aws_security_group" "c2_sg" {
 # Redirector Security Group
 resource "aws_security_group" "redirector_sg" {
   vpc_id = aws_vpc.main.id
+  name   = "redirector_sg"
 
   ingress {
     description = "Allow HTTP"
@@ -44,7 +46,7 @@ resource "aws_security_group" "redirector_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-    ingress {
+  ingress {
     description = "Allow HTTPS"
     from_port   = 443
     to_port     = 443
@@ -63,6 +65,7 @@ resource "aws_security_group" "redirector_sg" {
 # Main Server Security Group
 resource "aws_security_group" "main_sg" {
   vpc_id = aws_vpc.main.id
+  name   = "main_sg"
 
   ingress {
     description     = "Allow SSH from Redirectors"
