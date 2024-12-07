@@ -38,11 +38,16 @@ Variables.tf stores things like API tokens, domain names for redirectors and c2s
 
 <h2>C2</h2>
 
-For this lab, I chose Cobalt Strike as my C2 server.
+For this lab, I chose Metasploit as my C2 server.
 
-Below is the remote-exec Terraform provisioner for C2 server that downloads CS zip, unzips it with a given CS password and creates a cron job to make sure the C2 server is started once the server boots up:
+This Terraform provisioner block uses remote-exec to configure a machine after it's created. It performs the following actions:
 
-![image](https://github.com/user-attachments/assets/7e447768-40aa-43b9-ae71-7ad9a24c7b73)
+![image](https://github.com/user-attachments/assets/45847799-7a74-4285-92fb-0396f1e34ad5)
+1.Updates the package list and installs zip and default-jre.
+2.Downloads the latest version of the Metasploit Framework as a ZIP file into /opt.
+3.Extracts the ZIP and installs required Ruby gems for Metasploit.
+4.Sets up a cron job to start Metasploit with a resource script (msfvenom.rc) at every reboot.
+5.Reboots the machine to apply changes.
 
 <h2>C2 redirector</h2>
 
