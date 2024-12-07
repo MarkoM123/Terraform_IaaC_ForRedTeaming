@@ -44,43 +44,72 @@ This Terraform provisioner block uses remote-exec to configure a machine after i
 
 ![image](https://github.com/user-attachments/assets/45847799-7a74-4285-92fb-0396f1e34ad5)
 1.Updates the package list and installs zip and default-jre.
+
 2.Downloads the latest version of the Metasploit Framework as a ZIP file into /opt.
+
 3.Extracts the ZIP and installs required Ruby gems for Metasploit.
+
 4.Sets up a cron job to start Metasploit with a resource script (msfvenom.rc) at every reboot.
+
 5.Reboots the machine to apply changes.
 
 <h2>C2 redirector</h2>
+This script turns the instance into a C2 redirector. The Nginx reverse proxy hides the actual Command and Control (C2) server by routing traffic through the redirector, adding a layer of operational security.
 
-I use a socat to simply redirect all incoming traffic on port 80 and 443 to the main HTTP C2 server running Cobalt Strike team server:
+![image](https://github.com/user-attachments/assets/77c637f4-a2d1-44f0-b2c7-e94249cfc825)
+Here's what it does step by step:
 
-![image](https://github.com/user-attachments/assets/34d2b98b-4729-414c-8bea-1aadccbe79cd)
+1.Update System Packages: The script starts by updating the package list using apt-get update.
 
-<h2> Testing C2 and C2 redirector </h2>
-It's easy to test if your C2 and its redirectors work as expected.
+2.Install Nginx: It installs the Nginx web server with the command apt-get install -y nginx.
 
-Note below - a couple of FQDNs that were printed out by Terraform when outputs.tf file was executed: static.redteam.me and ads.redteam.me both pointing to 159.203.122.243 - this is the C2 redirector IP - any traffic on port 80 and 443 will be redirected to the main C2 server, which is hosted on 68.183.150.191 as shown in the second image below:
-![image](https://github.com/user-attachments/assets/fecd26b3-5fbd-4452-bf1d-b9014077240d)
+3.Configure Proxy Pass: The script creates an Nginx configuration file in /etc/nginx/sites-enabled/default.The configuration sets up a basic reverse proxy.
+It listens on port 80 and forwards incoming traffic to the backend server at http://10.0.2.1.
 
-![image](https://github.com/user-attachments/assets/69a6b284-0799-4ded-9995-263496ee45fd)
-
-The steps are as follows:
-
-1.Cobalt Strike is launched and connected to the main C2 server hosted on 68.183.150.191 - it can be reached via css.ired.team
-
-2.a new listener on port 443 is created on the C2 host 68.183.150.191
-
-3.beacon hostsname are set to two subdomains on the C2 redirector - static.redteam.me and ads.redteam.me
-
-4.stageless beacon is generated and executed on the target system via SMB
-
-5.beacon calls back to *.redteam.me which redirects traffic to the C2 teamserver on 68.183.150.191 and we see a CS session popup:
-
-Below is a screengrab of the tcpdump on C2 server which shows that the redirector IP (organge, 159.203.122.243) has initiated the connection to the C2 (blue, 68.183.150.191):
-
-![image](https://github.com/user-attachments/assets/5f57c6f3-2470-41e2-83b4-81f954e08c85)
+4.Restart Nginx: Finally, it restarts the Nginx service to apply the new configuration.
 
 <h2>Phishing</h2>
+My phishing server is running GoPhish framework.
+![image](https://github.com/user-attachments/assets/64cbcd30-2725-41c1-a682-975333fd5981)
+The GoPhish is set to listen on port 3333 which I expose to the internet, but only allow access for the operator using AWS security group:
+![image](https://github.com/user-attachments/assets/0703878d-e47f-4b82-95aa-d7fd005e3a9a)
+Again - var.operator-ip is set in variables.tf
 
+<h2>Phishing redirector</h2>
+
+This was the most time consuming piece to set up. It is a known fact that setting up SMTP servers usually is a huge pain. Automating the red team infrastructure is worth purely because of the fact that you will not ever need to rebuild the SMTP server from scratch once it gets burned during the engagement.
+
+The pain for this piece originated from setting up the smtp relay, since there were a number of moving parts to it:
+
+*setting up SPF records
+
+*setting up DKIM
+
+*setting up encryption
+
+*configuring postfix as a relay
+
+*sanitizing email headers to obfuscate the originating email server (the phishing server)
+
+<h2>Payload redirector</h2>
+Payload redirector server is built on apache2 mod_rewrite and proxy modules. Mod_rewrite module allows us to write fine-grained URL rewriting rules and proxy victim's HTTP requests to appropriate payloads as the operator deems appropriate.
+
+.htaccess
+Below is an .htaccess file that instructs apache, or to be precise mod_rewrite module, on when, where and how (i.e proxy or redirect) to rewrite incoming HTTP requests:
+
+.htaccess
+Copy
+RewriteEngine On
+RewriteCond %{HTTP_USER_AGENT} "android|blackberry|googlebot-mobile|iemobile|ipad|iphone|ipod|opera mobile|palmos|webos" [NC]
+RewriteRule ^.*$ http://payloadURLForMobiles/login [P]
+RewriteRule ^.*$ http://payloadURLForOtherClients/%{REQUEST_URI} [P]
+Breakdown of the file:
+
+Line 2 essentially says: hey, apache, if you see an incoming http request with a user agent that contains any of the words "android, blackberry, ..." etc, move to line 3
+
+Line 3 instructs apache to proxy ([P]) the http request to http://payloadURLForMobiles/login. If condition in line 2 fails, move to line 4
+
+If condition in line 2 fails, the http request gets proxied to http://payloadURLForOtherClients/%{REQUEST_URI} where REQUEST_URI is the part of the http request that was appended after the domain name - i.e someDomain.com/?thisIsTheRequestUri=true
 
 
 
