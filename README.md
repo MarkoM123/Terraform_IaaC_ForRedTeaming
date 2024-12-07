@@ -33,7 +33,8 @@ My red team infrastructure is defined by terraform state configuration files tha
 <h2>Variables</h2>
 Variables.tf stores things like API tokens, domain names for redirectors and c2s, operator IPs that are used in firewall rules (i.e only allow incoming connections to team server or GoPhish from an operator owned IP):
 
-![image](https://github.com/user-attachments/assets/0c881350-ecc7-4d5e-b403-03388cea9d44)
+![image](https://github.com/user-attachments/assets/1ecbfba0-1ce8-498a-a5f7-476b0f170b89)
+
 
 <h2>C2</h2>
 
