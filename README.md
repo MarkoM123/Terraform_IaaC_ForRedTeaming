@@ -70,9 +70,13 @@ It listens on port 80 and forwards incoming traffic to the backend server at htt
 
 <h2>Phishing</h2>
 My phishing server is running GoPhish framework.
+
 ![image](https://github.com/user-attachments/assets/64cbcd30-2725-41c1-a682-975333fd5981)
+
 The GoPhish is set to listen on port 3333 which I expose to the internet, but only allow access for the operator using AWS security group:
+
 ![image](https://github.com/user-attachments/assets/0703878d-e47f-4b82-95aa-d7fd005e3a9a)
+
 Again - var.operator-ip is set in variables.tf
 
 <h2>Phishing redirector</h2>
@@ -98,7 +102,7 @@ Payload redirector server is built on apache2 mod_rewrite and proxy modules. Mod
 Below is an .htaccess file that instructs apache, or to be precise mod_rewrite module, on when, where and how (i.e proxy or redirect) to rewrite incoming HTTP requests:
 
 .htaccess
-Copy
+
 RewriteEngine On
 RewriteCond %{HTTP_USER_AGENT} "android|blackberry|googlebot-mobile|iemobile|ipad|iphone|ipod|opera mobile|palmos|webos" [NC]
 RewriteRule ^.*$ http://payloadURLForMobiles/login [P]
